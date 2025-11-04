@@ -1,0 +1,31 @@
+# Version of Docker Compose file format
+version: '3.8'
+
+# Define our services (containers)
+services:
+  # Flask web application service
+  web:
+    # Build the image from Dockerfile in current directory
+    build: .
+    # Map host port 5000 to container port 5000
+    # Format: "host_port:container_port"
+    ports:
+      - "5000:5000"
+    # Persistent volume for SQLite database
+    # This ensures data persists even if container is removed/restarted
+    volumes:
+      - url_data:/data
+    # All services use the same network for communication
+    networks:
+      - url-shortener-network
+
+# Define volumes for data persistence
+volumes:
+  url_data:
+    # Named volume to store SQLite database
+
+# Define custom network for our services
+networks:
+  url-shortener-network:
+    driver: bridge
+    # Bridge network allows containers to communicate with each other

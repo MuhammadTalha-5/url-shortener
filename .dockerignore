@@ -4,6 +4,8 @@ __pycache__
 *.pyd
 .Python
 env
+venv
+.venv
 pip-log.txt
 pip-delete-this-directory.txt
 .tox
@@ -17,3 +19,8 @@ coverage.xml
 .mypy_cache
 .dmypy.json
 dmypy.json
+.env
+Dockerfile
+docker-compose.yml
+README.md
+.gitignore

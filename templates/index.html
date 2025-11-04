@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .stats {
+            margin-top: 30px;
+        }
+
+        .url-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔗 URL Shortener</h1>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Enter your long URL here...">
+            <button onclick="shortenUrl()">Shorten URL</button>
+        </div>
+
+        <div id="result" class="result">
+            <strong>Short URL:</strong>
+            <a id="shortUrl" target="_blank" style="color: #007bff;"></a>
+            <button onclick="copyToClipboard()" style="margin-left: 10px;">Copy</button>
+        </div>
+
+        <div class="stats">
+            <h3>All URLs</h3>
+            <button onclick="loadStats()">Refresh Stats</button>
+            <div id="statsList"></div>
+        </div>
+    </div>
+
+    <script>
+        async function shortenUrl() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            try {
+                const response = await fetch('/shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('shortUrl').href = data.short_url;
+                    document.getElementById('shortUrl').textContent = data.short_url;
+                    document.getElementById('result').style.display = 'block';
+                    loadStats(); // Refresh stats
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error shortening URL: ' + error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+
+                if (response.ok) {
+                    const statsList = document.getElementById('statsList');
+                    statsList.innerHTML = '';
+
+                    data.urls.forEach(url => {
+                        const urlItem = document.createElement('div');
+                        urlItem.className = 'url-item';
+                        urlItem.innerHTML = `
+                            <strong>Original:</strong> ${url.original_url}<br>
+                            <strong>Short:</strong> <a href="${url.short_url}" target="_blank">${url.short_url}</a><br>
+                            <strong>Clicks:</strong> ${url.clicks} | 
+                            <strong>Created:</strong> ${new Date(url.created_at).toLocaleDateString()}
+                        `;
+                        statsList.appendChild(urlItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function copyToClipboard() {
+            const shortUrl = document.getElementById('shortUrl').href;
+            navigator.clipboard.writeText(shortUrl).then(() => {
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        // Load stats when page loads
+        document.addEventListener('DOMContentLoaded', loadStats);
+
+        // Allow pressing Enter to shorten URL
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                shortenUrl();
+            }
+        });
+    </script>
+</body>
+
+</html>
